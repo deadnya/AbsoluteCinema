@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - cinema_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - cinema-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinema-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS}
+      JWT_EXPIRED_TOKENS_CLEANUP_MS: ${JWT_EXPIRED_TOKENS_CLEANUP_MS}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}
+      LOGGING_LEVEL_COM_ABSOLUTE_CINEMA: ${LOGGING_LEVEL_COM_ABSOLUTE_CINEMA}
+      LOGGING_LEVEL_SECURITY: ${LOGGING_LEVEL_SECURITY}
+      LOGGING_LEVEL_SQL: ${LOGGING_LEVEL_SQL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - cinema-network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  cinema_data:
+    driver: local
+
+networks:
+  cinema-network:
+    driver: bridge
