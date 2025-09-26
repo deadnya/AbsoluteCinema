@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -38,8 +39,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/register").permitAll()
+
                         .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/users/{id}").hasAuthority("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/films").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/films/{id}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/films").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/films/{id}").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/films/{id}").hasAuthority("ADMIN")
 
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()

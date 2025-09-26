@@ -15,9 +15,11 @@ public record RegisterRequestDTO(
         String password,
 
         @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
+        @NotNull(message = "First name cannot be null")
         String firstName,
 
         @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
+        @NotNull(message = "Last name cannot be null")
         String lastName,
 
         @NotNull(message = "Age cannot be null")
