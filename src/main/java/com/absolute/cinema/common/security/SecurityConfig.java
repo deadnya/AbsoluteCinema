@@ -49,6 +49,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/films/{id}").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/films/{id}").hasAuthority("ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/seat-categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/seat-categories/{id}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/seat-categories").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/seat-categories/{id}").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/seat-categories/{id}").hasAuthority("ADMIN")
+
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()

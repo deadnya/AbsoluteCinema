@@ -23,9 +23,9 @@ public class FilmController {
     @GetMapping
     public ResponseEntity<FilmPagedListDTO> getAllFilms(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(filmService.getFilms(page, limit));
+        return ResponseEntity.ok(filmService.getFilms(page, size));
     }
 
     @PostMapping
