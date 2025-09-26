@@ -14,7 +14,7 @@ import java.util.UUID;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "purchase")
+@Table(name = "purchases")
 public class Purchase {
 
     public enum Status { PENDING, PAID, FAILED, CANCELLED }

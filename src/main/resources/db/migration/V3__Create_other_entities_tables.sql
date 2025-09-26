@@ -56,7 +56,7 @@ CREATE TABLE tickets (
     price_cents INTEGER NOT NULL,
     status VARCHAR(16) NOT NULL,
     reserved_until TIMESTAMP NULL,
-    purchase_id NULL REFERENCES purchases(id) ON DELETE SET NULL,
+    purchase_id UUID NULL REFERENCES purchases(id) ON DELETE SET NULL,
     CONSTRAINT uq_ticket UNIQUE (session_id, seat_id)
 );
 
