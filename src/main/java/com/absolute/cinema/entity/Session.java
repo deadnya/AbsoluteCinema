@@ -36,13 +36,4 @@ public class Session {
 
     @Column(name = "slot_end_at", nullable = false)
     private OffsetDateTime slotEndAt;
-
-    @PrePersist @PreUpdate
-    private void computeTimeslot() {
-        if (startAt != null && film != null && film.getDurationMinutes() != null) {
-            var before = 20L; var after = 20L;
-            slotStartAt = startAt.minusMinutes(before);
-            slotEndAt = startAt.plusMinutes(film.getDurationMinutes() + after);
-        }
-    }
 }
