@@ -35,11 +35,9 @@ public class Seat {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private SeatCategory category;
-
     /*
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
-    ???
-    */
+     */
 }

@@ -17,7 +17,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/halls")
 @RequiredArgsConstructor
-@Validated
 public class HallController {
 
     private final HallService hallService;
