@@ -1,5 +1,6 @@
 package com.absolute.cinema.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -8,7 +9,7 @@ public record EditSeatCategoryDTO(
         @NotNull(message = "Name cannot be null")
         String name,
 
-        @Size(min = 0, message = "Price must be non-negative")
+        @Min(value = 0, message = "Price must be non-negative")
         Integer priceCents
 ) {
 }
