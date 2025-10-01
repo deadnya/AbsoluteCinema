@@ -30,6 +30,9 @@ public class Purchase {
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL)
     private List<Ticket> tickets = new ArrayList<>();
 
+    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL)
+    private List<Payment> payments = new ArrayList<>();
+
     @Column(name = "total_cents", nullable = false)
     private Integer totalCents;
 

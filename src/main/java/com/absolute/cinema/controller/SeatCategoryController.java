@@ -19,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/seat-categories")
 @RequiredArgsConstructor
+@CrossOrigin
 public class SeatCategoryController {
 
     private final SeatCategoryService seatCategoryService;

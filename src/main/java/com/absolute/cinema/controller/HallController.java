@@ -17,6 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/halls")
 @RequiredArgsConstructor
+@CrossOrigin
 public class HallController {
 
     private final HallService hallService;

@@ -16,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/films")
+@CrossOrigin
 public class FilmController {
 
     private final FilmService filmService;

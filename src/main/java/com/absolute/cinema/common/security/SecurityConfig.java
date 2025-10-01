@@ -55,6 +55,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/seat-categories/{id}").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/seat-categories/{id}").hasAuthority("ADMIN")
 
+                        .requestMatchers("/sessions/{sessionId}/tickets").permitAll()
+                        .requestMatchers("/tickets/{id}/reserve").authenticated()
+                        .requestMatchers("/tickets/{id}/cancel-reservation").authenticated()
+
+                        .requestMatchers("/purchases/**").authenticated()
+
+                        .requestMatchers("/payments/**").authenticated()
+
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()

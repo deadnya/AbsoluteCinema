@@ -18,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/sessions")
+@CrossOrigin
 public class SessionController {
 
     private final SessionService sessionService;
