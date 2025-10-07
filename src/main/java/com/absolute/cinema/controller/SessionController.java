@@ -6,7 +6,6 @@ import com.absolute.cinema.dto.SessionDTO;
 import com.absolute.cinema.dto.SessionPagedListDTO;
 import com.absolute.cinema.service.SessionService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -42,14 +41,14 @@ public class SessionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SessionDTO> getSession(
-            @PathVariable @Size(min = 36, max = 36) UUID id
+            @PathVariable UUID id
     ) {
         return ResponseEntity.ok(sessionService.getSession(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SessionDTO> editSession(
-            @PathVariable @Size(min = 36, max = 36) UUID id,
+            @PathVariable UUID id,
             @RequestBody @Valid EditSessionDTO editSessionDTO
     ) {
         return ResponseEntity.ok(sessionService.editSession(id, editSessionDTO));
@@ -57,7 +56,7 @@ public class SessionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSession(
-            @PathVariable @Size(min = 36, max = 36) UUID id
+            @PathVariable UUID id
     ) {
         sessionService.deleteSession(id);
         return ResponseEntity.ok().build();

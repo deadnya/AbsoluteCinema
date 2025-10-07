@@ -6,7 +6,6 @@ import com.absolute.cinema.dto.FilmPagedListDTO;
 import com.absolute.cinema.dto.UpdateFilmDTO;
 import com.absolute.cinema.service.FilmService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,14 +37,14 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public ResponseEntity<FilmDTO> getFilmById(
-            @PathVariable @Size(min = 36, max = 36) UUID id
+            @PathVariable UUID id
     ) {
         return ResponseEntity.ok(filmService.getFilmById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FilmDTO> updateFilm(
-            @PathVariable @Size(min = 36, max = 36) UUID id,
+            @PathVariable UUID id,
             @RequestBody @Valid UpdateFilmDTO updateFilmDTO
     ) {
         return ResponseEntity.ok(filmService.updateFilm(id, updateFilmDTO));
@@ -53,7 +52,7 @@ public class FilmController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFilm(
-            @PathVariable @Size(min = 36, max = 36) UUID id
+            @PathVariable UUID id
     ) {
         filmService.deleteFilm(id);
         return ResponseEntity.ok().build();

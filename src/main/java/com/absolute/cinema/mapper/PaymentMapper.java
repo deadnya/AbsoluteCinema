@@ -9,8 +9,10 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface PaymentMapper {
+    @Mapping(target = "paymentId", source = "id")
     PaymentStatusDTO toStatusDTO(Payment payment);
 
     @Mapping(target = "message", source = "message")
+    @Mapping(target = "paymentId", source = "payment.id")
     PaymentResponseDTO toResponseDTO(Payment payment, String message);
 }

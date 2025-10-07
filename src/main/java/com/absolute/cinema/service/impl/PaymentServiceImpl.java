@@ -7,10 +7,13 @@ import com.absolute.cinema.dto.PaymentResponseDTO;
 import com.absolute.cinema.dto.PaymentStatusDTO;
 import com.absolute.cinema.entity.Payment;
 import com.absolute.cinema.entity.Purchase;
+import com.absolute.cinema.entity.Ticket;
 import com.absolute.cinema.entity.User;
 import com.absolute.cinema.mapper.PaymentMapper;
 import com.absolute.cinema.repository.PaymentRepository;
 import com.absolute.cinema.repository.PurchaseRepository;
+import com.absolute.cinema.repository.TicketRepository;
+import com.absolute.cinema.service.EmailSenderService;
 import com.absolute.cinema.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,9 +27,11 @@ import java.util.UUID;
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
 
+    private final TicketRepository ticketRepository;
     private final PaymentRepository paymentRepository;
     private final PurchaseRepository purchaseRepository;
     private final PaymentMapper paymentMapper;
+    private final EmailSenderService emailSenderService;
     private final Random random = new Random();
 
     @Override
@@ -43,7 +48,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment savedPayment = paymentRepository.save(payment);
 
-        updatePurchaseStatus(purchase, randomStatus);
+        updatePurchaseStatus(purchase, Payment.Status.SUCCESS);
         purchaseRepository.save(purchase);
 
         purchase.getPayments().add(savedPayment);
@@ -53,6 +58,17 @@ public class PaymentServiceImpl implements PaymentService {
             case FAILED -> "Payment failed";
             case PENDING -> "Payment is being processed";
         };
+
+        for (var ticket : purchase.getTickets()) {
+            ticket.setStatus(Ticket.Status.SOLD);
+            ticketRepository.save(ticket);
+        }
+
+        emailSenderService.sendEmail(
+                purchase.getClient().getEmail(),
+                "Payment Status",
+                String.format("Your payment for purchase ID %s is %s.", purchase.getId(), message)
+        );
 
         return paymentMapper.toResponseDTO(savedPayment, message);
     }

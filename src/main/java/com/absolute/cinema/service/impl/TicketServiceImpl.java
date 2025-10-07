@@ -6,6 +6,7 @@ import com.absolute.cinema.dto.TicketDTO;
 import com.absolute.cinema.entity.Seat;
 import com.absolute.cinema.entity.Session;
 import com.absolute.cinema.entity.Ticket;
+import com.absolute.cinema.entity.User;
 import com.absolute.cinema.mapper.TicketMapper;
 import com.absolute.cinema.repository.SeatRepository;
 import com.absolute.cinema.repository.TicketRepository;
@@ -44,14 +45,21 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketDTO> getTicketsForSession(UUID sessionId) {
-        return ticketRepository.findBySessionId(sessionId).stream()
+    public List<TicketDTO> getTicketsForSession(UUID sessionId, Ticket.Status status) {
+        List<Ticket> tickets;
+        if (status != null) {
+            tickets = ticketRepository.findBySessionIdAndStatus(sessionId, status);
+        } else {
+            tickets = ticketRepository.findBySessionId(sessionId);
+        }
+
+        return tickets.stream()
                 .map(ticketMapper::toDTO)
                 .toList();
     }
 
     @Override
-    public TicketDTO reserveTicket(UUID id) {
+    public TicketDTO reserveTicket(UUID id, User user) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format("Ticket with id %s not found", id)));
 
@@ -61,12 +69,13 @@ public class TicketServiceImpl implements TicketService {
 
         ticket.setStatus(Ticket.Status.RESERVED);
         ticket.setReservedUntil(OffsetDateTime.now().plusMinutes(15));
+        ticket.setReservedByUser(user);
 
         return ticketMapper.toDTO(ticketRepository.save(ticket));
     }
 
     @Override
-    public TicketDTO cancelReserveForTicket(UUID id) {
+    public TicketDTO cancelReserveForTicket(UUID id, User user) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format("Ticket with id %s not found", id)));
 
@@ -74,8 +83,13 @@ public class TicketServiceImpl implements TicketService {
             throw new BadRequestException(String.format("Ticket with id %s is not reserved", id));
         }
 
+        if (ticket.getReservedByUser() == null || !ticket.getReservedByUser().getId().equals(user.getId())) {
+            throw new BadRequestException("You can only cancel reservations for tickets you have reserved");
+        }
+
         ticket.setStatus(Ticket.Status.AVAILABLE);
         ticket.setReservedUntil(null);
+        ticket.setReservedByUser(null);
 
         return ticketMapper.toDTO(ticketRepository.save(ticket));
     }

@@ -2,6 +2,7 @@ package com.absolute.cinema.dto;
 
 import com.absolute.cinema.entity.User;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -22,6 +23,7 @@ public record RegisterRequestDTO(
         @NotNull(message = "Last name cannot be null")
         String lastName,
 
+        @Min(value = 0, message = "Age must be non-negative")
         @NotNull(message = "Age cannot be null")
         Integer age,
 

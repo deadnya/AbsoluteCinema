@@ -1,0 +1,1 @@
+ALTER TABLE tickets ADD COLUMN reserved_by_user_id UUID REFERENCES users(id);

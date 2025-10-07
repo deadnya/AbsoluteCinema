@@ -4,12 +4,8 @@ import com.absolute.cinema.dto.CreateSeatCategoryDTO;
 import com.absolute.cinema.dto.EditSeatCategoryDTO;
 import com.absolute.cinema.dto.SeatCategoryDTO;
 import com.absolute.cinema.dto.SeatCategoryPagedListDTO;
-import com.absolute.cinema.dto.hall.HallUpdateRequestDTO;
 import com.absolute.cinema.service.SeatCategoryService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +35,6 @@ public class SeatCategoryController {
         return ResponseEntity.ok(seatCategoryService.createSeatCategory(createSeatCategoryDTO));
     }
 
-    // @Size(min = 36, max = 36)
     @GetMapping("/{id}")
     public ResponseEntity<SeatCategoryDTO> getSeatCategoryById(
             @PathVariable UUID id
@@ -47,7 +42,6 @@ public class SeatCategoryController {
         return ResponseEntity.ok(seatCategoryService.getSeatCategoryById(id));
     }
 
-    // @Size(min = 36, max = 36)
     @PutMapping("/{id}")
     public ResponseEntity<SeatCategoryDTO> editSeatCategory(
             @PathVariable UUID id, @Valid @RequestBody EditSeatCategoryDTO editSeatCategoryDTO
@@ -55,7 +49,6 @@ public class SeatCategoryController {
         return ResponseEntity.ok(seatCategoryService.editSeatCategory(id, editSeatCategoryDTO));
     }
 
-    // @Size(min = 36, max = 36)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSeatCategory(
             @PathVariable UUID id

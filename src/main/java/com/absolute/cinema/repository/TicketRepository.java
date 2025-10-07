@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     void deleteBySessionId(UUID sessionId);
     List<Ticket> findBySessionId(UUID sessionId);
+    List<Ticket> findBySessionIdAndStatus(UUID sessionId, Ticket.Status status);
+    boolean existsBySession_Film_IdAndStatusAndPurchase_Client_Id(UUID filmId, Ticket.Status status, UUID userId);
 }

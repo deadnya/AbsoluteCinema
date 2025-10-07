@@ -5,7 +5,7 @@ import com.absolute.cinema.dto.PurchaseDTO;
 import com.absolute.cinema.dto.PurchasePagedListDTO;
 import com.absolute.cinema.entity.User;
 import com.absolute.cinema.service.PurchaseService;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +32,7 @@ public class PurchaseController {
 
     @PostMapping
     public ResponseEntity<PurchaseDTO> createPurchase(
-            CreatePurchaseDTO createPurchaseDTO,
+            @RequestBody @Valid CreatePurchaseDTO createPurchaseDTO,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(purchaseService.createPurchaseForClient(createPurchaseDTO, user));
@@ -40,7 +40,7 @@ public class PurchaseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PurchaseDTO> getPurchaseById(
-            @PathVariable @Size(min = 36, max = 36) UUID id,
+            @PathVariable UUID id,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(purchaseService.getPurchaseById(id, user));
@@ -48,7 +48,7 @@ public class PurchaseController {
 
     @PostMapping("/{id}/cancel")
     public ResponseEntity<PurchaseDTO> cancelPurchaseById(
-            @PathVariable @Size(min = 36, max = 36) UUID id,
+            @PathVariable UUID id,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(purchaseService.cancelPurchaseById(id, user));

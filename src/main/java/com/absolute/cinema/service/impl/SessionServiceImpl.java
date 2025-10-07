@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -39,14 +40,31 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public SessionPagedListDTO getSessions(int page, int size, UUID filmId, Date date) {
-
         if (page < 0) throw new BadRequestException("Page index must not be less than zero");
         if (size < 1) throw new BadRequestException("Page size must not be less than one");
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Session> sessions;
 
-        sessions = sessionRepository.findAll(pageable);
+        OffsetDateTime startOfDay = null;
+        OffsetDateTime endOfDay = null;
+
+        if (date != null) {
+            ZoneId zone = ZoneId.systemDefault();
+            LocalDate localDate = date.toInstant().atZone(zone).toLocalDate();
+            startOfDay = localDate.atStartOfDay(zone).toOffsetDateTime();
+            endOfDay = localDate.plusDays(1).atStartOfDay(zone).toOffsetDateTime().minusNanos(1);
+        }
+
+        if (filmId != null && date != null) {
+            sessions = sessionRepository.findByFilmIdAndStartAtBetween(filmId, startOfDay, endOfDay, pageable);
+        } else if (filmId != null) {
+            sessions = sessionRepository.findByFilmId(filmId, pageable);
+        } else if (date != null) {
+            sessions = sessionRepository.findByStartAtBetween(startOfDay, endOfDay, pageable);
+        } else {
+            sessions = sessionRepository.findAll(pageable);
+        }
 
         return new SessionPagedListDTO(
                 sessions.getContent().stream()
@@ -82,6 +100,8 @@ public class SessionServiceImpl implements SessionService {
         session.setFilm(film);
         session.setHall(hall);
         session.setStartAt(startAt);
+        session.setSlotStartAt(startAt);
+        session.setSlotEndAt(startAt.plusMinutes(film.getDurationMinutes()));
 
         session = sessionRepository.save(session);
 

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record HallPlanDTO (
-        UUID HallId,
+        UUID hallId,
         Integer rows,
         List<SeatInPlanDTO> seats,
         List<SeatCategoryDTO> categories

@@ -6,13 +6,15 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record SeatUpsertDTO(
-        @NotNull @Min(1)
+        @NotNull(message = "Row must not be null")
+        @Min(value = 1, message = "Row must be at least 1")
         Integer row,
 
-        @NotNull @Min(1)
+        @NotNull(message = "Seat number must not be null")
+        @Min(value = 1, message = "Seat number must be at least 1")
         Integer number,
 
-        @NotNull
+        @NotNull(message = "Category ID must not be null")
         UUID categoryId
 ) {
 }

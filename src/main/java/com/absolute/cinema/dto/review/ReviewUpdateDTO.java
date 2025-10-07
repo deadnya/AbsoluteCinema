@@ -4,11 +4,15 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.Range;
 
 public record ReviewUpdateDTO(
-        @NotNull @Min(0) @Max(5)
+        @NotNull
+        @Range(min = 1, max = 5, message = "Rating must be between 1 and 5")
         Integer rating,
-        @NotNull @Size(max = 2000)
+
+        @NotNull
+        @Size(max = 2000, message = "Text must be at most 2000 characters")
         String text
 ) {
 }

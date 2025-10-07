@@ -9,6 +9,7 @@ import com.absolute.cinema.dto.hall.SeatInPlanDTO;
 import com.absolute.cinema.dto.hall.SeatUpsertDTO;
 import com.absolute.cinema.entity.Hall;
 import com.absolute.cinema.entity.Seat;
+import com.absolute.cinema.entity.SeatCategory;
 import com.absolute.cinema.repository.HallRepository;
 import com.absolute.cinema.repository.SeatCategoryRepository;
 import com.absolute.cinema.repository.SeatRepository;
@@ -44,7 +45,7 @@ public class HallPlanServiceImpl implements HallPlanService {
         var categories = seats.stream()
                 .map(Seat::getCategory)
                 .collect(Collectors.toMap(
-                        c -> c.getId(),
+                        SeatCategory::getId,
                         c -> new SeatCategoryDTO(c.getId(), c.getName(), c.getPriceCents()),
                         (a, b) -> a,
                         LinkedHashMap::new
@@ -61,8 +62,8 @@ public class HallPlanServiceImpl implements HallPlanService {
     @Override
     @Transactional
     public HallPlanDTO updatePlan(UUID hallId, HallPlanUpdateRequestDTO request) {
-        Hall hall = hallRepository.findById(hallId)
-                .orElseThrow(() -> new NotFoundException("Hall not found"));
+        Hall hall = hallRepository.findById(hallId).orElseThrow(
+                () -> new NotFoundException(String.format("Hall with id: %s not found", hallId)));
 
         if (request.seats().isEmpty()) {
             throw new BadRequestException("Seats list cannot be empty");
@@ -70,7 +71,18 @@ public class HallPlanServiceImpl implements HallPlanService {
 
         int maxRowInSeats = request.seats().stream().mapToInt(SeatUpsertDTO::row).max().orElse(0);
         if (request.rows() < maxRowInSeats) {
-            throw new BadRequestException("Rows is less than max seat row (" + maxRowInSeats + ")");
+            throw new BadRequestException(String.format("Number of rows %d is less than max row in seats %d",
+                    request.rows(), maxRowInSeats));
+        }
+
+        var seatPositions = new HashSet<String>();
+        for (SeatUpsertDTO seat : request.seats()) {
+            String position = seat.row() + "-" + seat.number();
+            if (!seatPositions.add(position)) {
+                throw new BadRequestException(
+                        String.format("Duplicate seat position found: row %d, number %d", seat.row(), seat.number())
+                );
+            }
         }
 
         var requestedCategoryIds = request.seats().stream()
@@ -78,19 +90,19 @@ public class HallPlanServiceImpl implements HallPlanService {
                 .collect(Collectors.toSet());
 
         var existingCategories = seatCategoryRepository.findAllById(requestedCategoryIds)
-                .stream().map(c -> c.getId()).collect(Collectors.toSet());
+                .stream().map(SeatCategory::getId).collect(Collectors.toSet());
 
         if (!existingCategories.containsAll(requestedCategoryIds)) {
             var missing = new HashSet<>(requestedCategoryIds);
             missing.removeAll(existingCategories);
-            throw new NotFoundException("Seat categories not found: " + missing);
+            throw new NotFoundException(String.format("Seat categories with ids %s not found", missing));
         }
 
         seatRepository.deleteByHallId(hall.getId());
 
         List<Seat> toSave = new ArrayList<>(request.seats().size());
         var categoriesById = seatCategoryRepository.findAllById(requestedCategoryIds)
-                .stream().collect(Collectors.toMap(c -> c.getId(), c -> c));
+                .stream().collect(Collectors.toMap(SeatCategory::getId, c -> c));
 
         for (SeatUpsertDTO s : request.seats()) {
             var entity = new Seat();

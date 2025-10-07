@@ -8,9 +8,11 @@ import com.absolute.cinema.dto.PageDTO;
 import com.absolute.cinema.dto.PurchaseDTO;
 import com.absolute.cinema.dto.PurchasePagedListDTO;
 import com.absolute.cinema.entity.Purchase;
+import com.absolute.cinema.entity.Ticket;
 import com.absolute.cinema.entity.User;
 import com.absolute.cinema.mapper.PurchaseMapper;
 import com.absolute.cinema.repository.PurchaseRepository;
+import com.absolute.cinema.repository.TicketRepository;
 import com.absolute.cinema.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
+    private final TicketRepository ticketRepository;
     private final PurchaseMapper purchaseMapper;
 
     @Override
@@ -52,9 +55,31 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     @Transactional
     public PurchaseDTO createPurchaseForClient(CreatePurchaseDTO createPurchaseDTO, User user) {
-        Purchase purchase = purchaseMapper.toEntity(createPurchaseDTO);
+        Purchase purchase = new Purchase();
+
+        int priceCents = 0;
+
+        for (var ticketId : createPurchaseDTO.ticketIds()) {
+            Ticket existingTicket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new NotFoundException(String.format("Ticket with id %s not found", ticketId)));
+
+            if (existingTicket.getStatus() != Ticket.Status.RESERVED ||
+                existingTicket.getReservedByUser() == null ||
+                !existingTicket.getReservedByUser().getId().equals(user.getId())) {
+                throw new BadRequestException(String.format(
+                        "Ticket with id %s is not reserved by user %s", ticketId, user.getId())
+                );
+            }
+
+            existingTicket.setPurchase(purchase);
+            ticketRepository.save(existingTicket);
+
+            priceCents += existingTicket.getPriceCents();
+        }
+
         purchase.setClient(user);
         purchase.setStatus(Purchase.Status.PENDING);
+        purchase.setTotalCents(priceCents);
 
         Purchase savedPurchase = purchaseRepository.save(purchase);
         return purchaseMapper.toPurchaseDTO(savedPurchase);
@@ -77,6 +102,14 @@ public class PurchaseServiceImpl implements PurchaseService {
                     "Only PENDING or PAID purchases can be cancelled. Current status: %s",
                     purchase.getStatus())
             );
+        }
+
+        for (Ticket ticket : purchase.getTickets()) {
+            ticket.setStatus(Ticket.Status.AVAILABLE);
+            ticket.setPurchase(null);
+            ticket.setReservedByUser(null);
+            ticket.setReservedUntil(null);
+            ticketRepository.save(ticket);
         }
 
         purchase.setStatus(Purchase.Status.CANCELLED);

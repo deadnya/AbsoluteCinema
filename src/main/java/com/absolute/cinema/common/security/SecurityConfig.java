@@ -15,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,10 +25,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-//@SecurityScheme(type = SecuritySchemeType.HTTP, name = "bearerAuth", scheme = "bearer")
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
@@ -48,6 +48,26 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/films").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/films/{id}").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/films/{id}").hasAuthority("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/films/{id}/reviews").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/films/{id}/reviews").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/reviews/{id}").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/reviews/{id}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/reviews/{id}").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/halls").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/halls/{id}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/halls").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/halls/{id}").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/halls/{id}").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/halls/{id}/plan").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/halls/{id}/plan").hasAuthority("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/sessions").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/sessions").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/sessions/{id}").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/sessions/{id}").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/sessions/{id}").hasAuthority("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/seat-categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/seat-categories/{id}").permitAll()
@@ -76,12 +96,8 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
-                        })
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        })
+                        .accessDeniedHandler(accessDeniedHandler)
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 );
 
         return http.build();

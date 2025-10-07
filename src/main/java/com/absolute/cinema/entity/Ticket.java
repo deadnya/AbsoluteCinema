@@ -48,4 +48,8 @@ public class Ticket {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id")
     private Purchase purchase;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reserved_by_user_id")
+    private User reservedByUser;
 }

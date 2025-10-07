@@ -1,6 +1,7 @@
 package com.absolute.cinema.dto;
 
 import com.absolute.cinema.entity.Film;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -14,7 +15,7 @@ public record CreateFilmDTO(
         @NotNull(message = "Description must not be null")
         String description,
 
-        @Size(min = 1, message = "Duration must be at least 1 minute")
+        @Min(value = 1, message = "Duration must be at least 1 minute")
         @NotNull(message = "Duration must not be null")
         Integer durationMinutes,
 

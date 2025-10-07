@@ -5,6 +5,7 @@ import com.absolute.cinema.common.exception.custom.ForbiddenException;
 import com.absolute.cinema.common.exception.custom.NotFoundException;
 import com.absolute.cinema.common.exception.custom.UnauthorizedException;
 import com.absolute.cinema.dto.ErrorDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,10 +14,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -68,5 +71,29 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorDTO(HttpStatus.FORBIDDEN.value(), List.of(ex.getMessage())));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorDTO> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex, WebRequest request) {
+        String typeName = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+        String error = String.format("The parameter '%s' of value '%s' could not be converted to type '%s'",
+                ex.getName(), ex.getValue(), typeName);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorDTO(HttpStatus.BAD_REQUEST.value(), List.of(error)));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDTO> handleGlobalException(Exception ex, WebRequest request) {
+
+        log.error("Unhandled exception occurred: ", ex);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorDTO(
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        List.of("An unexpected error occurred")
+                ));
     }
 }

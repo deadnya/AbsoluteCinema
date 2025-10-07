@@ -1,10 +1,12 @@
 package com.absolute.cinema.controller;
 
 import com.absolute.cinema.dto.TicketDTO;
+import com.absolute.cinema.entity.Ticket;
+import com.absolute.cinema.entity.User;
 import com.absolute.cinema.service.TicketService;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,22 +21,25 @@ public class TicketController {
 
     @GetMapping("/sessions/{sessionId}/tickets")
     public ResponseEntity<List<TicketDTO>> getTicketsForSession(
-            @PathVariable @Size(min = 36, max = 36) UUID sessionId
+            @PathVariable UUID sessionId,
+            @RequestParam(required = false) Ticket.Status status
     ) {
-        return ResponseEntity.ok(ticketService.getTicketsForSession(sessionId));
+        return ResponseEntity.ok(ticketService.getTicketsForSession(sessionId, status));
     }
 
     @PostMapping("/tickets/{id}/reserve")
     public ResponseEntity<TicketDTO> reserveTicket(
-            @PathVariable @Size(min = 36, max = 36) UUID id
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(ticketService.reserveTicket(id));
+        return ResponseEntity.ok(ticketService.reserveTicket(id, user));
     }
 
     @PostMapping("/tickets/{id}/cancel-reservation")
     public ResponseEntity<TicketDTO> cancelReservation(
-            @PathVariable @Size(min = 36, max = 36) UUID id
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(ticketService.cancelReserveForTicket(id));
+        return ResponseEntity.ok(ticketService.cancelReserveForTicket(id, user));
     }
 }
