@@ -1,0 +1,1272 @@
+openapi: 3.0.3
+info:
+  title: Cinema Ticketing API
+  version: 2.0.0
+  description: API для системы продажи билетов в кинотеатр.
+servers:
+  - url: http://91.142.94.183:8080
+  - url: http://localhost:8080
+
+paths:
+  /auth/register:
+    post:
+      summary: Регистрация пользователя
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Пользователь уже существует
+
+  /auth/login:
+    post:
+      summary: Логин пользователя
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Неверные данные
+
+  /users/me:
+    get:
+      summary: Получить текущего пользователя
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Не авторизован
+
+    put:
+      summary: Обновить данные пользователя
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Данные обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Ошибка валидации
+
+  /users/{id}:
+    get:
+      summary: Получить пользователя по ID (admin)
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Пользователь не найден
+
+  /films:
+    get:
+      summary: Получить список фильмов
+      tags: [Films]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Список фильмов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilmListResponse'
+    post:
+      summary: Создать фильм (admin)
+      tags: [Films]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilmCreate'
+      responses:
+        '201':
+          description: Фильм создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Film'
+
+  /films/{id}:
+    get:
+      summary: Получить фильм по ID
+      tags: [Films]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Фильм
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Film'
+        '404':
+          description: Не найден
+
+    put:
+      summary: Обновить фильм (admin)
+      tags: [Films]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilmUpdate'
+      responses:
+        '200':
+          description: Фильм обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Film'
+        '404':
+          description: Фильм не найден
+
+    delete:
+      summary: Удалить фильм (admin)
+      tags: [Films]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Фильм удален
+        '404':
+          description: Фильм не найден
+
+  /sessions:
+    get:
+      summary: Получить список сеансов
+      tags: [Sessions]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - name: filmId
+          in: query
+          description: Фильтр по ID фильма
+          schema:
+            type: string
+        - name: date
+          in: query
+          description: Фильтр по дате (YYYY-MM-DD)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список сеансов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
+    post:
+      summary: Создать сеанс (admin)
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+      responses:
+        '201':
+          description: Сеанс создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+
+  /sessions/{id}:
+    get:
+      summary: Получить сеанс по ID
+      tags: [Sessions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Сеанс
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '404':
+          description: Сеанс не найден
+
+    put:
+      summary: Обновить сеанс (admin)
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionUpdate'
+      responses:
+        '200':
+          description: Сеанс обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '404':
+          description: Сеанс не найден
+
+    delete:
+      summary: Удалить сеанс (admin)
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Сеанс удален
+        '404':
+          description: Сеанс не найден
+
+  /halls:
+    get:
+      summary: Получить список залов
+      tags: [Halls]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Список залов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HallListResponse'
+    post:
+      summary: Создать зал (admin)
+      tags: [Halls]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HallCreate'
+      responses:
+        '201':
+          description: Зал создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hall'
+
+  /halls/{id}:
+    get:
+      summary: Получить зал по ID
+      tags: [Halls]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Зал
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hall'
+        '404':
+          description: Зал не найден
+
+    put:
+      summary: Обновить зал (admin)
+      tags: [Halls]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HallUpdate'
+      responses:
+        '200':
+          description: Зал обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hall'
+        '404':
+          description: Зал не найден
+
+    delete:
+      summary: Удалить зал (admin)
+      tags: [Halls]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Зал удален
+        '404':
+          description: Зал не найден
+
+  /halls/{id}/plan:
+    get:
+      summary: Получить план зала
+      tags: [Halls]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: План зала
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HallPlan'
+        '404':
+          description: Зал не найден
+
+    put:
+      summary: Обновить план зала (admin)
+      tags: [Halls]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HallPlanUpdate'
+      responses:
+        '200':
+          description: План зала обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HallPlan'
+        '404':
+          description: Зал не найден
+
+  /seat-categories:
+    get:
+      summary: Получить список категорий мест
+      tags: [SeatCategories]
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Список категорий мест
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatCategoryListResponse'
+    post:
+      summary: Создать категорию мест (admin)
+      tags: [SeatCategories]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeatCategoryCreate'
+      responses:
+        '201':
+          description: Категория создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatCategory'
+
+  /seat-categories/{id}:
+    get:
+      summary: Получить категорию мест по ID
+      tags: [SeatCategories]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Категория мест
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatCategory'
+        '404':
+          description: Категория не найдена
+
+    put:
+      summary: Обновить категорию мест (admin)
+      tags: [SeatCategories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeatCategoryUpdate'
+      responses:
+        '200':
+          description: Категория обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatCategory'
+        '404':
+          description: Категория не найдена
+
+    delete:
+      summary: Удалить категорию мест (admin)
+      tags: [SeatCategories]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Категория удалена
+        '404':
+          description: Категория не найдена
+
+  /sessions/{sessionId}/tickets:
+    get:
+      summary: Получить билеты для сеанса
+      tags: [Tickets]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Фильтр по статусу билета
+          schema:
+            type: string
+            enum: [AVAILABLE, RESERVED, SOLD, CANCELLED]
+      responses:
+        '200':
+          description: Список билетов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Сеанс не найден
+
+  /tickets/{id}/reserve:
+    post:
+      summary: Забронировать билет
+      tags: [Tickets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Билет забронирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Билет недоступен для бронирования
+        '404':
+          description: Билет не найден
+
+  /tickets/{id}/cancel-reservation:
+    post:
+      summary: Отменить бронирование билета
+      tags: [Tickets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Бронирование отменено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Невозможно отменить бронирование
+        '404':
+          description: Билет не найден
+
+  /purchases:
+    get:
+      summary: Получить историю покупок пользователя
+      tags: [Purchases]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: История покупок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseListResponse'
+
+    post:
+      summary: Создать покупку
+      tags: [Purchases]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseCreate'
+      responses:
+        '201':
+          description: Покупка создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '400':
+          description: Ошибка валидации или билеты недоступны
+
+  /purchases/{id}:
+    get:
+      summary: Получить покупку по ID
+      tags: [Purchases]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Покупка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '404':
+          description: Покупка не найдена
+
+  /purchases/{id}/cancel:
+    post:
+      summary: Отменить покупку
+      tags: [Purchases]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Покупка отменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        '400':
+          description: Невозможно отменить покупку
+
+  /films/{filmId}/reviews:
+    get:
+      summary: Получить отзывы на фильм
+      tags: [Reviews]
+      parameters:
+        - name: filmId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Список отзывов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewListResponse'
+        '404':
+          description: Фильм не найден
+
+    post:
+      summary: Оставить отзыв на фильм
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: filmId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '201':
+          description: Отзыв создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Ошибка валидации или нет покупки на этот фильм
+        '404':
+          description: Фильм не найден
+
+  /reviews/{id}:
+    get:
+      summary: Получить отзыв по ID
+      tags: [Reviews]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Отзыв
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          description: Отзыв не найден
+
+    put:
+      summary: Обновить свой отзыв
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdate'
+      responses:
+        '200':
+          description: Отзыв обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '403':
+          description: Нет прав для редактирования
+        '404':
+          description: Отзыв не найден
+
+    delete:
+      summary: Удалить отзыв
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Отзыв удален
+        '403':
+          description: Нет прав для удаления
+        '404':
+          description: Отзыв не найден
+
+  /payments/process:
+    post:
+      summary: Обработать платеж (заглушка)
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Платеж обработан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Ошибка обработки платежа
+
+  /payments/{id}/status:
+    get:
+      summary: Получить статус платежа
+      tags: [Payments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Статус платежа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+        '404':
+          description: Платеж не найден
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        firstName:
+          type: string
+        lastName:
+          type: string
+        age:
+          type: integer
+          minimum: 0
+        gender:
+          type: string
+          enum: [MALE, FEMALE]
+          description: Пол пользователя
+      required: [email, password, firstName, lastName, gender]
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        age: { type: integer }
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        gender:
+          type: string
+          enum: [MALE, FEMALE]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    UserUpdate:
+      type: object
+      properties:
+        email: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        age: { type: integer }
+        gender:
+          type: string
+          enum: [MALE, FEMALE]
+
+    FilmListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Film'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    SessionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Session'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        pages: { type: integer }
+
+    FilmUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        durationMinutes: { type: integer }
+        ageRating:
+          type: string
+          enum: ["0+", "6+", "12+", "16+", "18+"]
+
+    SessionCreate:
+      type: object
+      properties:
+        filmId: { type: string }
+        hallId: { type: string }
+        startAt: { type: string, format: date-time }
+      required: [filmId, hallId, startAt]
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+
+    Film:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        durationMinutes: { type: integer }
+        ageRating:
+          type: string
+          enum: ["0+", "6+", "12+", "16+", "18+"]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    FilmCreate:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        durationMinutes: { type: integer }
+        ageRating:
+          type: string
+          enum: ["0+", "6+", "12+", "16+", "18+"]
+      required: [title, description, durationMinutes, ageRating]
+
+    Session:
+      type: object
+      properties:
+        id: { type: string }
+        filmId: { type: string }
+        hallId: { type: string }
+        startAt:
+          type: string
+          format: date-time
+        timeslot:
+          type: object
+          properties:
+            start: { type: string, format: date-time }
+            end: { type: string, format: date-time }
+
+    Ticket:
+      type: object
+      properties:
+        id: { type: string }
+        sessionId: { type: string }
+        seatId: { type: string }
+        categoryId: { type: string }
+        priceCents: { type: integer }
+        status:
+          type: string
+          enum: [AVAILABLE, RESERVED, SOLD, CANCELLED]
+        reservedUntil: { type: string, format: date-time }
+
+    Purchase:
+      type: object
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        ticketIds:
+          type: array
+          items: { type: string }
+        totalCents: { type: integer }
+        status:
+          type: string
+          enum: [PENDING, PAID, FAILED, CANCELLED]
+        createdAt: { type: string, format: date-time }
+
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        filmId: { type: string }
+        clientId: { type: string }
+        rating: { type: integer, minimum: 0, maximum: 5 }
+        text: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Hall:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        number: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    SeatCategory:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        priceCents: { type: integer }
+
+    Seat:
+      type: object
+      properties:
+        id: { type: string }
+        row: { type: integer }
+        number: { type: integer }
+        categoryId: { type: string }
+        status:
+          type: string
+          enum: [AVAILABLE, RESERVED, SOLD, CANCELLED]
+
+    HallPlan:
+      type: object
+      properties:
+        hallId: { type: string }
+        rows: { type: integer }
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/Seat'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatCategory'
+
+    SessionUpdate:
+      type: object
+      properties:
+        filmId: { type: string }
+        hallId: { type: string }
+        startAt: { type: string, format: date-time }
+
+    HallListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hall'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    HallCreate:
+      type: object
+      properties:
+        name: { type: string }
+        number: { type: integer }
+      required: [name, number]
+
+    HallUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        number: { type: integer }
+
+    HallPlanUpdate:
+      type: object
+      properties:
+        rows: { type: integer }
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatCreate'
+      required: [rows, seats]
+
+    SeatCreate:
+      type: object
+      properties:
+        row: { type: integer }
+        number: { type: integer }
+        categoryId: { type: string }
+      required: [row, number, categoryId]
+
+    SeatCategoryListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatCategory'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    SeatCategoryCreate:
+      type: object
+      properties:
+        name: { type: string }
+        priceCents: { type: integer }
+      required: [name, priceCents]
+
+    SeatCategoryUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        priceCents: { type: integer }
+
+    PurchaseListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Purchase'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    PurchaseCreate:
+      type: object
+      properties:
+        ticketIds:
+          type: array
+          items: { type: string }
+      required: [ticketIds]
+
+    ReviewListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ReviewCreate:
+      type: object
+      properties:
+        rating: { type: integer, minimum: 0, maximum: 5 }
+        text: { type: string }
+      required: [rating, text]
+
+    ReviewUpdate:
+      type: object
+      properties:
+        rating: { type: integer, minimum: 0, maximum: 5 }
+        text: { type: string }
+
+    PaymentRequest:
+      type: object
+      properties:
+        purchaseId: { type: string }
+        cardNumber: { type: string }
+        expiryDate: { type: string }
+        cvv: { type: string }
+        cardHolderName: { type: string }
+      required: [purchaseId, cardNumber, expiryDate, cvv, cardHolderName]
+
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId: { type: string }
+        status:
+          type: string
+          enum: [SUCCESS, FAILED, PENDING]
+        message: { type: string }
+
+    PaymentStatus:
+      type: object
+      properties:
+        paymentId: { type: string }
+        status:
+          type: string
+          enum: [SUCCESS, FAILED, PENDING]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+  parameters:
+    page:
+      name: page
+      in: query
+      description: Номер страницы
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    limit:
+      name: size
+      in: query
+      description: Количество элементов на странице
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
