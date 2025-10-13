@@ -1,5 +1,7 @@
 package com.absolute.cinema.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +24,25 @@ public class Film {
         SIXTEEN_PLUS("16+"),
         EIGHTEEN_PLUS("18+");
 
+        private final String label;
+
         AgeRating(String label) {
+            this.label = label;
+        }
+
+        @JsonValue
+        public String getLabel() {
+            return label;
+        }
+
+        @JsonCreator
+        public static AgeRating fromLabel(String label) {
+            for (AgeRating rating : values()) {
+                if (rating.label.equals(label)) {
+                    return rating;
+                }
+            }
+            throw new IllegalArgumentException("Unknown age rating: " + label);
         }
     }
 
