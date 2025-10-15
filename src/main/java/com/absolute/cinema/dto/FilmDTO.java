@@ -11,6 +11,7 @@ public record FilmDTO(
         String description,
         Integer durationMinutes,
         Film.AgeRating ageRating,
+        MediaDTO poster,
         Date createdAt,
         Date updatedAt
 ) {

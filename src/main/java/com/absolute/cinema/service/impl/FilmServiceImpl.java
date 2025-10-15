@@ -4,9 +4,11 @@ import com.absolute.cinema.common.exception.custom.BadRequestException;
 import com.absolute.cinema.common.exception.custom.NotFoundException;
 import com.absolute.cinema.dto.*;
 import com.absolute.cinema.entity.Film;
+import com.absolute.cinema.entity.Media;
 import com.absolute.cinema.mapper.FilmMapper;
 import com.absolute.cinema.repository.FilmRepository;
 import com.absolute.cinema.service.FilmService;
+import com.absolute.cinema.service.MediaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +25,7 @@ public class FilmServiceImpl implements FilmService {
 
     private final FilmRepository filmRepository;
     private final FilmMapper filmMapper;
+    private final MediaService mediaService;
 
     @Override
     public FilmPagedListDTO getFilms(Integer page, Integer limit) {
@@ -50,7 +53,14 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public FilmDTO createFilm(CreateFilmDTO createFilmDTO) {
-        return filmMapper.toDTO(filmRepository.save(filmMapper.toFilm(createFilmDTO)));
+        Film film = filmMapper.toFilm(createFilmDTO);
+        
+        if (createFilmDTO.posterId() != null) {
+            Media poster = validatePoster(createFilmDTO.posterId());
+            film.setPoster(poster);
+        }
+        
+        return filmMapper.toDTO(filmRepository.save(film));
     }
 
     @Override
@@ -74,6 +84,13 @@ public class FilmServiceImpl implements FilmService {
         film.setDescription(updateFilmDTO.description());
         film.setDurationMinutes(updateFilmDTO.durationMinutes());
         film.setAgeRating(updateFilmDTO.ageRating());
+        
+        if (updateFilmDTO.posterId() != null) {
+            Media poster = validatePoster(updateFilmDTO.posterId());
+            film.setPoster(poster);
+        } else {
+            film.setPoster(null);
+        }
 
         return filmMapper.toDTO(filmRepository.save(film));
     }
@@ -86,5 +103,15 @@ public class FilmServiceImpl implements FilmService {
         }
 
         filmRepository.deleteById(id);
+    }
+    
+    private Media validatePoster(UUID posterId) {
+        Media media = mediaService.getMediaById(posterId);
+        
+        if (media.getMediaType() != Media.MediaType.IMAGE) {
+            throw new BadRequestException("Media with ID " + posterId + " is not an image. Only images can be used as posters.");
+        }
+        
+        return media;
     }
 }

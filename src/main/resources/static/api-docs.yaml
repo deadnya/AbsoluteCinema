@@ -231,7 +231,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionListResponse'
     post:
-      summary: Создать сеанс (admin)
+      summary: Создать сеанс (admin) (periodicConfig = null для одиночного сеанса)
       tags: [Sessions]
       security:
         - bearerAuth: []
@@ -875,6 +875,79 @@ paths:
         '404':
           description: Платеж не найден
 
+  /media/upload:
+    post:
+      summary: Загрузить медиафайл (admin)
+      description: Загружает медиафайл в базу данных как binary данные (PostgreSQL BYTEA)
+      tags: [Media]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Медиафайл для загрузки
+                mediaType:
+                  type: string
+                  enum: [IMAGE, AUDIO, VIDEO]
+                  description: Тип медиафайла
+              required: [file, mediaType]
+      responses:
+        '201':
+          description: Медиафайл загружен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+        '400':
+          description: Ошибка валидации
+        '413':
+          description: Файл слишком большой
+
+  /media/{id}:
+    get:
+      summary: Получить медиафайл
+      tags: [Media]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Медиафайл
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Медиафайл не найден
+
+    delete:
+      summary: Удалить медиафайл (admin)
+      tags: [Media]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Медиафайл удален
+        '404':
+          description: Медиафайл не найден
+
 components:
   schemas:
     RegisterRequest:
@@ -964,6 +1037,7 @@ components:
         ageRating:
           type: string
           enum: ["0+", "6+", "12+", "16+", "18+"]
+        posterId: { type: string }
 
     SessionCreate:
       type: object
@@ -971,7 +1045,18 @@ components:
         filmId: { type: string }
         hallId: { type: string }
         startAt: { type: string, format: date-time }
+        periodicConfig:
+          $ref: '#/components/schemas/PeriodicSessionConfig'
       required: [filmId, hallId, startAt]
+
+    PeriodicSessionConfig:
+      type: object
+      properties:
+        period:
+          type: string
+          enum: [EVERY_DAY, EVERY_WEEK]
+        periodGenerationEndsAt: { type: string, format: date-time }
+      required: [period, periodGenerationEndsAt]
 
     LoginRequest:
       type: object
@@ -998,6 +1083,20 @@ components:
         ageRating:
           type: string
           enum: ["0+", "6+", "12+", "16+", "18+"]
+        poster:
+          $ref: '#/components/schemas/Media'
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Media:
+      type: object
+      properties:
+        id: { type: string }
+        filename: { type: string }
+        contentType: { type: string }
+        mediaType:
+          type: string
+          enum: [IMAGE, AUDIO, VIDEO]
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
@@ -1010,6 +1109,7 @@ components:
         ageRating:
           type: string
           enum: ["0+", "6+", "12+", "16+", "18+"]
+        posterId: { type: string }
       required: [title, description, durationMinutes, ageRating]
 
     Session:

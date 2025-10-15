@@ -7,9 +7,11 @@ import com.absolute.cinema.common.exception.custom.UnauthorizedException;
 import com.absolute.cinema.dto.ErrorDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -63,6 +65,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDTO> handleNotFoundException(NotFoundException ex, WebRequest request) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorDTO(HttpStatus.NOT_FOUND.value(), List.of(ex.getMessage())));
     }
 
@@ -71,6 +74,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorDTO(HttpStatus.FORBIDDEN.value(), List.of(ex.getMessage())));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ErrorDTO> handleHttpMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException ex, WebRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_ACCEPTABLE)
+                .body(new ErrorDTO(HttpStatus.NOT_ACCEPTABLE.value(), List.of("Requested media type not acceptable")));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -82,6 +92,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorDTO(HttpStatus.BAD_REQUEST.value(), List.of(error)));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorDTO(HttpStatus.BAD_REQUEST.value(), List.of(ex.getMessage())));
     }
 
     @ExceptionHandler(Exception.class)

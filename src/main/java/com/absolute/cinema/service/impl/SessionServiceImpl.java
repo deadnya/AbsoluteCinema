@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -89,6 +90,14 @@ public class SessionServiceImpl implements SessionService {
                 () -> new NotFoundException(String.format("Hall with id %s not found", dto.hallId()))
         );
 
+        if (dto.periodicConfig() != null) {
+            return createPeriodicSessions(dto, film, hall);
+        } else {
+            return createSingleSession(dto, film, hall);
+        }
+    }
+
+    private SessionDTO createSingleSession(CreateSessionDTO dto, Film film, Hall hall) {
         OffsetDateTime startAt = OffsetDateTime.ofInstant(
                 dto.startAt().toInstant(),
                 ZoneId.systemDefault()
@@ -104,10 +113,55 @@ public class SessionServiceImpl implements SessionService {
         session.setSlotEndAt(startAt.plusMinutes(film.getDurationMinutes()));
 
         session = sessionRepository.save(session);
-
         ticketService.createTicketsForSession(session);
 
         return sessionMapper.toDTO(session);
+    }
+
+    private SessionDTO createPeriodicSessions(CreateSessionDTO dto, Film film, Hall hall) {
+        OffsetDateTime startAt = OffsetDateTime.ofInstant(
+                dto.startAt().toInstant(),
+                ZoneId.systemDefault()
+        );
+        
+        OffsetDateTime endAt = OffsetDateTime.ofInstant(
+                dto.periodicConfig().periodGenerationEndsAt().toInstant(),
+                ZoneId.systemDefault()
+        );
+
+        if (startAt.isAfter(endAt)) {
+            throw new BadRequestException("Start date cannot be after period generation end date");
+        }
+
+        List<Session> createdSessions = new ArrayList<>();
+        OffsetDateTime currentDateTime = startAt;
+
+        while (!currentDateTime.isAfter(endAt)) {
+            validateSessionTimeSlot(hall.getId(), null, currentDateTime, film.getDurationMinutes());
+
+            Session session = new Session();
+            session.setFilm(film);
+            session.setHall(hall);
+            session.setStartAt(currentDateTime);
+            session.setSlotStartAt(currentDateTime);
+            session.setSlotEndAt(currentDateTime.plusMinutes(film.getDurationMinutes()));
+
+            session = sessionRepository.save(session);
+            ticketService.createTicketsForSession(session);
+            createdSessions.add(session);
+
+            currentDateTime = switch (dto.periodicConfig().period()) {
+                case EVERY_DAY -> currentDateTime.plusDays(1);
+                case EVERY_WEEK -> currentDateTime.plusWeeks(1);
+                default -> throw new BadRequestException("Unsupported period: " + dto.periodicConfig().period());
+            };
+        }
+
+        if (createdSessions.isEmpty()) {
+            throw new BadRequestException("No sessions were created within the specified period");
+        }
+
+        return sessionMapper.toDTO(createdSessions.getFirst());
     }
 
     @Override

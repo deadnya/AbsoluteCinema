@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public record UpdateFilmDTO(
 
         @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
@@ -20,6 +22,8 @@ public record UpdateFilmDTO(
         Integer durationMinutes,
 
         @NotNull(message = "Age rating must not be null")
-        Film.AgeRating ageRating
+        Film.AgeRating ageRating,
+
+        UUID posterId
 ) {
 }

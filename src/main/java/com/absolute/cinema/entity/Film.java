@@ -63,6 +63,10 @@ public class Film {
     @Column(name = "age_rating", nullable = false)
     private AgeRating ageRating;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "poster_id")
+    private Media poster;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;

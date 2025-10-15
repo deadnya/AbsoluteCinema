@@ -87,6 +87,11 @@ public class SecurityConfig {
 
                         .requestMatchers("/purchases/**").authenticated()
 
+                        .requestMatchers(HttpMethod.GET, "/media/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/media/{id}/info").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/media/upload").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/media/{id}").hasAuthority("ADMIN")
+
                         .requestMatchers("/payments/**").authenticated()
 
                         .requestMatchers("/actuator/**").permitAll()

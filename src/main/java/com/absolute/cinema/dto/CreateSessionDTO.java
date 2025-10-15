@@ -1,5 +1,6 @@
 package com.absolute.cinema.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Date;
@@ -14,5 +15,8 @@ public record CreateSessionDTO(
         UUID hallId,
 
         @NotNull(message = "Start time cannot be null")
-        Date startAt
+        Date startAt,
+        
+        @Valid
+        PeriodicSessionConfigDTO periodicConfig
 ) { }
