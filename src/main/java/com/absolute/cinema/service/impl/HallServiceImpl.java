@@ -61,10 +61,8 @@ public class HallServiceImpl implements HallService {
     public HallDTO create(HallCreateRequestDTO req) {
         var hall = hallRepository.save(hallMapper.fromCreate(req));
 
-        if (req.seats() != null && !req.seats().isEmpty()) {
-            var planUpdateRequest = new HallPlanUpdateRequestDTO(req.rows(), req.seats());
-            hallPlanService.updatePlan(hall.getId(), planUpdateRequest);
-        }
+        var planUpdateRequest = new HallPlanUpdateRequestDTO(req.rows(), req.seats());
+        hallPlanService.updatePlan(hall.getId(), planUpdateRequest);
         
         return hallMapper.toDTO(hall);
     }

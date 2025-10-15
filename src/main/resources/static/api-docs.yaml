@@ -329,6 +329,7 @@ paths:
                 $ref: '#/components/schemas/HallListResponse'
     post:
       summary: Создать зал с планом (admin)
+      description: Создает новый зал с обязательным планом расположения мест
       tags: [Halls]
       security:
         - bearerAuth: []
@@ -340,11 +341,13 @@ paths:
               $ref: '#/components/schemas/HallCreate'
       responses:
         '201':
-          description: Зал создан с планом
+          description: Зал создан с планом расположения мест
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Hall'
+        '400':
+          description: Ошибка валидации (отсутствуют места или неверные данные)
 
   /halls/{id}:
     get:
@@ -1224,12 +1227,23 @@ components:
 
     HallCreate:
       type: object
+      description: Создание зала с обязательным планом расположения мест
       properties:
-        name: { type: string }
-        number: { type: integer }
-        rows: { type: integer }
+        name: 
+          type: string
+          description: Название зала
+        number: 
+          type: integer
+          description: Номер зала
+          minimum: 1
+        rows: 
+          type: integer
+          description: Количество рядов в зале
+          minimum: 1
         seats:
           type: array
+          description: Список мест в зале (обязательный, не может быть пустым)
+          minItems: 1
           items:
             $ref: '#/components/schemas/SeatCreate'
       required: [name, number, rows, seats]
