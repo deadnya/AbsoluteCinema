@@ -6,6 +6,7 @@ import com.absolute.cinema.dto.PageDTO;
 import com.absolute.cinema.dto.hall.*;
 import com.absolute.cinema.mapper.HallMapper;
 import com.absolute.cinema.repository.HallRepository;
+import com.absolute.cinema.service.HallPlanService;
 import com.absolute.cinema.service.HallService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +23,7 @@ public class HallServiceImpl implements HallService {
 
     private final HallRepository hallRepository;
     private final HallMapper hallMapper;
+    private final HallPlanService hallPlanService;
 
     @Override
     @Transactional(readOnly = true)
@@ -57,7 +59,14 @@ public class HallServiceImpl implements HallService {
 
     @Override
     public HallDTO create(HallCreateRequestDTO req) {
-        return hallMapper.toDTO(hallRepository.save(hallMapper.fromCreate(req)));
+        var hall = hallRepository.save(hallMapper.fromCreate(req));
+
+        if (req.seats() != null && !req.seats().isEmpty()) {
+            var planUpdateRequest = new HallPlanUpdateRequestDTO(req.rows(), req.seats());
+            hallPlanService.updatePlan(hall.getId(), planUpdateRequest);
+        }
+        
+        return hallMapper.toDTO(hall);
     }
 
     @Override

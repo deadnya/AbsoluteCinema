@@ -14,6 +14,7 @@ import com.absolute.cinema.repository.HallRepository;
 import com.absolute.cinema.repository.SeatCategoryRepository;
 import com.absolute.cinema.repository.SeatRepository;
 import com.absolute.cinema.service.HallPlanService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class HallPlanServiceImpl implements HallPlanService {
     private final HallRepository hallRepository;
     private final SeatRepository seatRepository;
     private final SeatCategoryRepository seatCategoryRepository;
+    private final EntityManager entityManager;
 
     @Override
     public HallPlanDTO getPlan(UUID hallId) {
@@ -99,6 +101,7 @@ public class HallPlanServiceImpl implements HallPlanService {
         }
 
         seatRepository.deleteByHallId(hall.getId());
+        entityManager.flush();
 
         List<Seat> toSave = new ArrayList<>(request.seats().size());
         var categoriesById = seatCategoryRepository.findAllById(requestedCategoryIds)
