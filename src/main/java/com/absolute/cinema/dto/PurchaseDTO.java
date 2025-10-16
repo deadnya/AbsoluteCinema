@@ -9,6 +9,7 @@ import java.util.UUID;
 public record PurchaseDTO(
         UUID id,
         UUID clientId,
+        UUID filmId,
         List<UUID> ticketIds,
         Integer totalCents,
         Purchase.Status status,

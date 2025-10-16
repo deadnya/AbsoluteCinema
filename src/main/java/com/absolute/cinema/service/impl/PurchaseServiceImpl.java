@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -59,9 +60,13 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         int priceCents = 0;
 
+        HashSet<String> existingFilmsIds = new HashSet<>();
+
         for (var ticketId : createPurchaseDTO.ticketIds()) {
             Ticket existingTicket = ticketRepository.findById(ticketId)
                     .orElseThrow(() -> new NotFoundException(String.format("Ticket with id %s not found", ticketId)));
+
+            existingFilmsIds.add(existingTicket.getSession().getFilm().getId().toString());
 
             if (existingTicket.getStatus() != Ticket.Status.RESERVED ||
                 existingTicket.getReservedByUser() == null ||
@@ -75,6 +80,10 @@ public class PurchaseServiceImpl implements PurchaseService {
             ticketRepository.save(existingTicket);
 
             priceCents += existingTicket.getPriceCents();
+        }
+
+        if (existingFilmsIds.size() > 1) {
+            throw new BadRequestException("Trying to buy tickets for multiple films at once");
         }
 
         purchase.setClient(user);

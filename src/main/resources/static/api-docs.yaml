@@ -1148,6 +1148,7 @@ components:
       properties:
         id: { type: string }
         clientId: { type: string }
+        filmId: { type: string }
         ticketIds:
           type: array
           items: { type: string }
